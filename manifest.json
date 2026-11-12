@@ -1,0 +1,26 @@
+{
+"name": "Territórios BH - Gestão Completa",
+"short_name": "Territórios BH",
+"description": "Sistema de Gestão de Territórios, Cartões e Dirigentes — Santa Efigênia, Paraíso, Alto Paraíso e Salão do Reino",
+"start_url": "./index.html",
+"scope": "./",
+"display": "standalone",
+"orientation": "portrait",
+"background_color": "#2c5282",
+"theme_color": "#2c5282",
+"lang": "pt-BR",
+"icons": [
+{
+"src": "https://cdn-icons-png.flaticon.com/512/854/854878.png",
+"sizes": "192x192",
+"type": "image/png",
+"purpose": "any maskable"
+},
+{
+"src": "https://cdn-icons-png.flaticon.com/512/854/854878.png",
+"sizes": "512x512",
+"type": "image/png",
+"purpose": "any maskable"
+}
+]
+}
