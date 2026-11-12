@@ -234,12 +234,12 @@
                     </button>
                 </div>
 
-                <button type="button" onclick="openOldestTerritory()" class="w-full bg-gradient-to-r from-jw-600 via-jw-500 to-sky-600 text-white font-extrabold p-3.5 sm:p-4 rounded-2xl shadow-md flex items-center justify-center space-x-2 active:scale-95 transition hover:brightness-105 text-xs sm:text-sm cursor-pointer">
+                <button type="button" id="btn-toggle-oldest" onclick="toggleOldestTerritoriesContainer()" class="w-full bg-gradient-to-r from-jw-600 via-jw-500 to-sky-600 text-white font-extrabold p-3.5 sm:p-4 rounded-2xl shadow-md flex items-center justify-center space-x-2 active:scale-95 transition hover:brightness-105 text-xs sm:text-sm cursor-pointer">
                     <i data-lucide="sparkles" class="w-4 h-4 sm:w-5 sm:h-5 text-sky-200"></i>
-                    <span>⚡ Abrir Território + Tempo Sem Trabalhar</span>
+                    <span id="btn-toggle-oldest-text">⚡ Abrir Território + Tempo Sem Trabalhar</span>
                 </button>
 
-                <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/90 space-y-2">
+                <div id="oldest-territories-container" class="hidden bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/90 space-y-2 animate-fadeIn">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center space-x-2">
                             <i data-lucide="clock" class="w-4 h-4 text-red-500 animate-pulse"></i>
@@ -2409,14 +2409,23 @@
             fileInput.click();
         }
 
-        function openOldestTerritory() {
-            const available = territories.filter(t => t.status !== 'designado');
-            if (available.length === 0) {
-                showToast('Nenhum território disponível no momento!');
-                return;
+        function toggleOldestTerritoriesContainer() {
+            const container = document.getElementById('oldest-territories-container');
+            const label = document.getElementById('btn-toggle-oldest-text');
+            if (!container) return;
+
+            const isHidden = container.classList.contains('hidden');
+            if (isHidden) {
+                container.classList.remove('hidden');
+                if (label) label.innerText = 'Ocultar Territórios + Tempo Sem Trabalhar';
+            } else {
+                container.classList.add('hidden');
+                if (label) label.innerText = '⚡ Abrir Território + Tempo Sem Trabalhar';
             }
-            const sorted = [...available].sort((a, b) => getDaysDiff(b.lastWorked) - getDaysDiff(a.lastWorked));
-            if (sorted[0]) openTerritoryModal(sorted[0].number);
+        }
+
+        function openOldestTerritory() {
+            toggleOldestTerritoriesContainer();
         }
 
         /* ==================== PDF GENERATION & WHATSAPP SHARING ==================== */
