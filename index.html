@@ -52,10 +52,9 @@
 </head>
 <body class="h-full bg-slate-100 text-slate-800 antialiased flex flex-col items-center justify-start">
 
-    <!-- PWA MANIFEST & SERVICE WORKER (SINCRONIZADO COM sw.js E manifest.json) -->
+    <!-- PWA MANIFEST & SERVICE WORKER -->
     <script>
         (async function initPWA() {
-            // 1. Tenta usar o manifest.json físico do servidor; se não existir, gera dinamicamente
             try {
                 const res = await fetch('./manifest.json', { method: 'HEAD' });
                 const linkElem = document.createElement('link');
@@ -87,15 +86,11 @@
                 document.head.appendChild(linkElem);
             } catch (e) {}
 
-            // 2. Registra o sw.js físico do servidor (com atualização automática)
             if ('serviceWorker' in navigator) {
                 try {
                     const reg = await navigator.serviceWorker.register('./sw.js');
                     reg.update();
-                } catch (err) {
-                    // Fallback caso esteja rodando em preview isolado sem sw.js físico
-                    console.info('Service Worker externo não encontrado neste ambiente.');
-                }
+                } catch (err) {}
             }
         })();
     </script>
@@ -112,10 +107,10 @@
                     </div>
                     <div>
                         <h1 class="font-extrabold text-sm sm:text-base leading-tight tracking-tight">Territórios BH</h1>
-                        <div class="flex items-center space-x-1.5">
+                        <button type="button" onclick="openCloudSyncModal()" class="flex items-center space-x-1.5 text-left cursor-pointer group" title="Configurar Sincronização Multi-Dispositivo">
                             <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                            <p id="sync-status-text" class="text-[10px] sm:text-xs text-sky-200 truncate max-w-[180px] sm:max-w-none">Conectando sincronização...</p>
-                        </div>
+                            <p id="sync-status-text" class="text-[10px] sm:text-xs text-sky-200 group-hover:underline truncate max-w-[185px] sm:max-w-none">Conectando sincronização...</p>
+                        </button>
                     </div>
                 </div>
 
@@ -127,7 +122,7 @@
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-sky-200"></i>
                     </button>
 
-                    <div id="user-menu" class="hidden absolute right-0 mt-2 w-60 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 text-xs animate-fadeIn">
+                    <div id="user-menu" class="hidden absolute right-0 mt-2 w-64 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 text-xs animate-fadeIn">
                         <div class="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Operador do Sistema</div>
                         <button type="button" onclick="setUser('jv')" class="w-full text-left px-3 py-2 hover:bg-slate-100 rounded-xl flex items-center justify-between font-medium cursor-pointer">
                             <span>João Vitor <span class="text-[10px] text-emerald-600 font-bold">(Admin)</span></span>
@@ -138,7 +133,11 @@
                             <i data-lucide="check" id="check-wa" class="w-4 h-4 text-sky-600 hidden"></i>
                         </button>
                         <hr class="my-1.5 border-slate-100">
-                        <button type="button" onclick="openInstallInstructions()" class="w-full text-left px-3 py-2 hover:bg-blue-50 text-blue-700 rounded-xl flex items-center space-x-2 font-bold cursor-pointer">
+                        <button type="button" onclick="openCloudSyncModal()" class="w-full text-left px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl flex items-center space-x-2 font-extrabold cursor-pointer">
+                            <i data-lucide="cloud" class="w-4 h-4 text-emerald-600"></i>
+                            <span>Conexão Tempo Real (2 Celulares)</span>
+                        </button>
+                        <button type="button" onclick="openInstallInstructions()" class="w-full text-left px-3 py-2 hover:bg-blue-50 text-blue-700 rounded-xl flex items-center space-x-2 font-bold cursor-pointer mt-0.5">
                             <i data-lucide="smartphone" class="w-3.5 h-3.5 text-blue-600"></i>
                             <span>Instalar no iPhone / Android</span>
                         </button>
@@ -294,37 +293,64 @@
                 </div>
             </section>
 
-            <!-- TAB 3: CARDS GALLERY VIEW (GALERIA DE CARTÕES PARA SELEÇÃO E ENVIO PDF) -->
+            <!-- TAB 3: CARDS GALLERY VIEW -->
             <section id="view-cards" class="hidden space-y-3">
                 <div class="flex items-center justify-between bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <button type="button" onclick="goBackToDashboard()" class="flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-jw-500 hover:text-jw-700 bg-jw-50 px-3.5 py-2 rounded-xl border border-jw-100 active:scale-95 transition cursor-pointer">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i>
                         <span>Voltar</span>
                     </button>
-                    <span class="text-xs sm:text-sm font-extrabold text-slate-700">Galeria de Cartões</span>
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-700">Cartões para Envio</span>
                     <button type="button" onclick="openNewTerritoryModal()" class="bg-jw-500 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center space-x-1 cursor-pointer">
                         <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                         <span>Novo</span>
                     </button>
                 </div>
 
-                <!-- Filtros rápidos da galeria -->
-                <div class="flex space-x-1.5 overflow-x-auto hide-scrollbar pb-1">
-                    <button type="button" onclick="setCardGalleryFilter('all')" id="gal-filter-all" class="px-3 py-1.5 rounded-full text-xs font-bold bg-jw-500 text-white shrink-0 cursor-pointer">Todos</button>
-                    <button type="button" onclick="setCardGalleryFilter('Santa Efigênia')" id="gal-filter-SantaEfigênia" class="px-3 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 shrink-0 cursor-pointer">Santa Efigênia</button>
-                    <button type="button" onclick="setCardGalleryFilter('Paraíso')" id="gal-filter-Paraíso" class="px-3 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 shrink-0 cursor-pointer">Paraíso</button>
-                    <button type="button" onclick="setCardGalleryFilter('Alto Paraíso')" id="gal-filter-AltoParaíso" class="px-3 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 shrink-0 cursor-pointer">Alto Paraíso</button>
-                    <button type="button" onclick="setCardGalleryFilter('Salão do Reino')" id="gal-filter-SalãodoReino" class="px-3 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 shrink-0 cursor-pointer">Salão do Reino</button>
+                <div class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-extrabold text-slate-700 flex items-center space-x-1.5">
+                            <i data-lucide="folder-open" class="w-4 h-4 text-jw-500"></i>
+                            <span>Selecione o Bairro para ver os Cartões:</span>
+                        </span>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="clearGallerySelection()" id="btn-clear-selection" class="hidden text-[11px] font-extrabold text-red-600 underline cursor-pointer">Limpar Sel.</button>
+                            <button type="button" onclick="hideCardsGallery()" id="btn-hide-gallery" class="hidden text-[11px] font-bold text-slate-500 hover:text-jw-500 underline cursor-pointer">Ocultar</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                        <button type="button" onclick="selectCardGalleryNeighborhood('Santa Efigênia')" id="gal-filter-SantaEfigênia" class="p-2.5 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 hover:border-jw-500 text-left flex items-center justify-between transition cursor-pointer">
+                            <span class="truncate">Santa Efigênia</span>
+                            <span id="gal-count-SantaEfigênia" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-600">0</span>
+                        </button>
+                        <button type="button" onclick="selectCardGalleryNeighborhood('Paraíso')" id="gal-filter-Paraíso" class="p-2.5 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 hover:border-jw-500 text-left flex items-center justify-between transition cursor-pointer">
+                            <span class="truncate">Paraíso</span>
+                            <span id="gal-count-Paraíso" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-600">0</span>
+                        </button>
+                        <button type="button" onclick="selectCardGalleryNeighborhood('Alto Paraíso')" id="gal-filter-AltoParaíso" class="p-2.5 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 hover:border-jw-500 text-left flex items-center justify-between transition cursor-pointer">
+                            <span class="truncate">Alto Paraíso</span>
+                            <span id="gal-count-AltoParaíso" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-600">0</span>
+                        </button>
+                        <button type="button" onclick="selectCardGalleryNeighborhood('Salão do Reino')" id="gal-filter-SalãodoReino" class="p-2.5 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 hover:border-jw-500 text-left flex items-center justify-between transition cursor-pointer">
+                            <span class="truncate">Salão do Reino</span>
+                            <span id="gal-count-SalãodoReino" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-600">0</span>
+                        </button>
+                        <button type="button" onclick="selectCardGalleryNeighborhood('all')" id="gal-filter-all" class="p-2.5 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 hover:border-jw-500 text-left flex items-center justify-between transition col-span-2 sm:col-span-2 cursor-pointer">
+                            <span class="truncate">Mostrar Todos os Locais</span>
+                            <span id="gal-count-all" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-600">0</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="bg-sky-50 border border-sky-200 p-2.5 rounded-xl text-[11px] text-sky-900 flex items-center justify-between">
-                    <span>👆 Toque nos cartões abaixo para selecionar e gerar o PDF de envio.</span>
-                    <button type="button" onclick="clearGallerySelection()" id="btn-clear-selection" class="hidden text-xs font-extrabold text-red-600 underline ml-2 shrink-0 cursor-pointer">Limpar</button>
+                <div id="cards-gallery-wrapper" class="hidden bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-sm space-y-2 animate-fadeIn">
+                    <div class="flex justify-between items-center px-0.5">
+                        <span id="gal-active-label" class="text-[11px] font-extrabold text-jw-600 uppercase tracking-wider">Bairro Selecionado</span>
+                        <span class="text-[10px] text-slate-400">Toque para marcar • 🔍 para ampliar</span>
+                    </div>
+                    <div id="cards-gallery-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-1.5 pb-2"></div>
                 </div>
 
-                <div id="cards-gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pb-16"></div>
-
-                <!-- Barra flutuante de envio ao selecionar cartões -->
                 <div id="gallery-floating-bar" class="hidden fixed bottom-16 left-0 right-0 max-w-md sm:max-w-xl md:max-w-2xl mx-auto px-4 z-40 animate-slideUp">
                     <div class="bg-slate-900 text-white p-3.5 rounded-2xl shadow-2xl flex items-center justify-between border border-white/10">
                         <div>
@@ -384,7 +410,6 @@
                     </div>
                 </div>
 
-                <!-- Resumo Geral de Métricas do Relatório -->
                 <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                     <div class="flex justify-between items-center">
                         <h3 class="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center space-x-1.5">
@@ -486,6 +511,43 @@
         </nav>
 
         <!-- ==================== MODALS ==================== -->
+
+        <!-- MODAL CLOUD SYNC CONFIG (MULTI-DEVICE REALTIME) -->
+        <div id="modal-cloud-sync" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-4 animate-slideUp text-xs">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h3 class="font-extrabold text-slate-800 text-sm sm:text-base flex items-center space-x-2">
+                        <i data-lucide="cloud" class="w-5 h-5 text-emerald-600"></i>
+                        <span>Sincronização em Tempo Real (2 Celulares)</span>
+                    </h3>
+                    <button type="button" onclick="closeModal('modal-cloud-sync')" class="p-1 rounded-full bg-slate-100 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+
+                <div id="cloud-status-banner" class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span class="font-bold text-slate-700 block">Status Atual:</span>
+                    <span id="cloud-modal-status-msg" class="text-slate-600 font-medium block">Verificando conexão...</span>
+                </div>
+
+                <div class="space-y-2 text-slate-600">
+                    <p>Para que <strong>João Vitor</strong> e <strong>Watila</strong> vejam tudo em tempo real de <strong>celulares diferentes</strong> na sua hospedagem:</p>
+                    <ol class="list-decimal pl-4 space-y-1 text-[11px]">
+                        <li>Crie um projeto gratuito no <strong>Firebase (Firestore Database)</strong>.</li>
+                        <li>Copie o código <code class="bg-slate-100 px-1 rounded">firebaseConfig</code> e cole abaixo (nos dois aparelhos, ou salve no código).</li>
+                    </ol>
+                </div>
+
+                <form onsubmit="saveCustomFirebaseConfig(event)" class="space-y-2.5">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Código de Configuração Firebase (JSON ou Objeto):</label>
+                        <textarea id="custom-firebase-input" rows="4" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "...", "appId": "..."}' class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="clearCustomFirebaseConfig()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl cursor-pointer">Limpar Config</button>
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow cursor-pointer">Conectar Nuvem</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- MODAL 1: TERRITORY DETAIL -->
         <div id="modal-territory" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -932,28 +994,57 @@
         </div>
     </div>
 
-    <!-- REALTIME CLOUD SYNC MODULE (2 SIMULTANEOUS USERS) -->
+    <!-- REALTIME CLOUD SYNC MODULE (MULTI-DEVICE: JOÃO VITOR & WATILA) -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // SE VOCÊ TIVER UM PROJETO FIREBASE PRÓPRIO PARA HOSPEDAGEM EXTERNA, COLE AS CHAVES ABAIXO:
+        const DEFAULT_HOSTED_FIREBASE_CONFIG = null;
 
         let db = null;
         let auth = null;
         let cloudUser = null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'territorios-bh-app';
+        let unsubscribeSnapshot = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'territorios-bh-multi-device';
         let isApplyingRemoteUpdate = false;
+
+        function resolveFirebaseConfig() {
+            const savedCustom = localStorage.getItem('jw_custom_firebase_config');
+            if (savedCustom) {
+                try { return JSON.parse(savedCustom); } catch (e) {}
+            }
+            if (typeof __firebase_config !== 'undefined') {
+                try { return JSON.parse(__firebase_config); } catch (e) {}
+            }
+            return DEFAULT_HOSTED_FIREBASE_CONFIG;
+        }
 
         async function initRealtimeSync() {
             const dot = document.getElementById('sync-status-dot');
             const label = document.getElementById('sync-status-text');
+            const modalMsg = document.getElementById('cloud-modal-status-msg');
+
             try {
-                if (typeof __firebase_config === 'undefined') {
-                    if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-                    if (label) label.innerText = "Santa Efigênia • Paraíso • Salão";
+                if (unsubscribeSnapshot) {
+                    unsubscribeSnapshot();
+                    unsubscribeSnapshot = null;
+                }
+
+                const firebaseConfig = resolveFirebaseConfig();
+                if (!firebaseConfig || !firebaseConfig.projectId) {
+                    if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400";
+                    if (label) label.innerText = "Modo Local • Toque p/ Sincronizar";
+                    if (modalMsg) modalMsg.innerText = "Desconectado da nuvem (rodando apenas neste aparelho). Cole a configuração do Firebase abaixo para conectar 2 ou mais dispositivos.";
                     return;
                 }
-                const firebaseConfig = JSON.parse(__firebase_config);
+
+                const existingApps = getApps();
+                for (const a of existingApps) {
+                    await deleteApp(a);
+                }
+
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
@@ -969,10 +1060,11 @@
                 if (!cloudUser) return;
 
                 if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-                if (label) label.innerText = "Sincronizado em Tempo Real (2 Acessos)";
+                if (label) label.innerText = "Tempo Real Ativo (Multi-Dispositivo)";
+                if (modalMsg) modalMsg.innerText = `Conectado ao projeto "${firebaseConfig.projectId}"! Todas as alterações são sincronizadas ao vivo entre aparelhos.`;
 
                 const sharedDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'territorios_bh_sync', 'estado_geral');
-                onSnapshot(sharedDocRef, (snapshot) => {
+                unsubscribeSnapshot = onSnapshot(sharedDocRef, (snapshot) => {
                     if (snapshot.exists()) {
                         const remoteData = snapshot.data();
                         isApplyingRemoteUpdate = true;
@@ -994,15 +1086,19 @@
                     }
                 }, (err) => {
                     console.error("Erro na escuta em tempo real:", err);
-                    if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400";
-                    if (label) label.innerText = "Modo Local Ativo";
+                    if (dot) dot.className = "w-2 h-2 rounded-full bg-red-400";
+                    if (label) label.innerText = "Erro de Conexão Nuvem";
+                    if (modalMsg) modalMsg.innerText = "Erro de permissão ou rede no Firebase. Verifique as regras do Firestore.";
                 });
             } catch (e) {
                 console.error("Falha ao iniciar nuvem:", e);
                 if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400";
-                if (label) label.innerText = "Modo Local Ativo";
+                if (label) label.innerText = "Modo Local • Toque p/ Sincronizar";
+                if (modalMsg) modalMsg.innerText = "Configuração inválida ou sem conexão com a nuvem.";
             }
         }
+
+        window.restartRealtimeSync = initRealtimeSync;
 
         window.pushDataToCloud = async function() {
             if (!db || !cloudUser || isApplyingRemoteUpdate) return;
@@ -1015,6 +1111,7 @@
                 }, { merge: true });
             } catch (e) {
                 console.error("Erro ao sincronizar na nuvem:", e);
+                showToast("Aviso: Arquivo muito grande para sincronizar na nuvem.");
             }
         };
 
@@ -1032,7 +1129,7 @@
         let selectedConductorId = null;
         let currentNeighborhoodFilter = null;
         let territoriesVisible = false;
-        let currentCardGalleryFilter = 'all';
+        let currentCardGalleryFilter = null;
         let selectedGalleryCards = [];
 
         window.getTerritoriesState = () => territories;
@@ -1068,6 +1165,89 @@
             } catch (e) {
                 territories = [];
                 conductors = [];
+            }
+        }
+
+        // Otimiza imagens antes de salvar para garantir sincronização instantânea entre dispositivos
+        function processUploadedFile(file, callback) {
+            if (!file) return;
+            if (file.type.includes('pdf')) {
+                const reader = new FileReader();
+                reader.onload = (evt) => callback(evt.target.result, 'pdf', file.name);
+                reader.readAsDataURL(file);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const maxDim = 1100;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', 0.72), 'image', file.name);
+                };
+                img.onerror = () => callback(evt.target.result, 'image', file.name);
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openCloudSyncModal() {
+            document.getElementById('user-menu').classList.add('hidden');
+            const saved = localStorage.getItem('jw_custom_firebase_config') || '';
+            document.getElementById('custom-firebase-input').value = saved;
+            document.getElementById('modal-cloud-sync').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function saveCustomFirebaseConfig(e) {
+            e.preventDefault();
+            let raw = document.getElementById('custom-firebase-input').value.trim();
+            if (!raw) {
+                showToast("Cole a configuração do Firebase primeiro.");
+                return;
+            }
+            try {
+                // Permite colar tanto JSON estrito quanto objeto JS copiado direto do console Firebase
+                const startIdx = raw.indexOf('{');
+                const endIdx = raw.lastIndexOf('}');
+                if (startIdx >= 0 && endIdx > startIdx) {
+                    raw = raw.slice(startIdx, endIdx + 1);
+                }
+                const normalized = raw.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/'/g, '"');
+                const parsed = JSON.parse(normalized);
+                if (!parsed.projectId || !parsed.apiKey) {
+                    showToast("Faltam campos obrigatórios (apiKey / projectId).");
+                    return;
+                }
+                localStorage.setItem('jw_custom_firebase_config', JSON.stringify(parsed));
+                closeModal('modal-cloud-sync');
+                showToast("Conectando à nuvem em tempo real...");
+                if (typeof window.restartRealtimeSync === 'function') {
+                    window.restartRealtimeSync();
+                }
+            } catch (err) {
+                showToast("Formato inválido. Cole o bloco { apiKey: ..., projectId: ... }.");
+            }
+        }
+
+        function clearCustomFirebaseConfig() {
+            localStorage.removeItem('jw_custom_firebase_config');
+            document.getElementById('custom-firebase-input').value = '';
+            showToast("Configuração removida.");
+            if (typeof window.restartRealtimeSync === 'function') {
+                window.restartRealtimeSync();
             }
         }
 
@@ -1347,18 +1527,14 @@
             });
         }
 
-        /* ==================== TAB 3: CARDS GALLERY (SELEÇÃO E ENVIO PDF) ==================== */
-        function setCardGalleryFilter(filterVal) {
-            currentCardGalleryFilter = filterVal;
-            ['all', 'Santa Efigênia', 'Paraíso', 'Alto Paraíso', 'Salão do Reino'].forEach(f => {
-                const btnId = f === 'all' ? 'gal-filter-all' : `gal-filter-${f.replace(/\s+/g, '')}`;
-                const btn = document.getElementById(btnId);
-                if (btn) {
-                    btn.className = (f === filterVal)
-                        ? "px-3 py-1.5 rounded-full text-xs font-bold bg-jw-500 text-white shrink-0 cursor-pointer"
-                        : "px-3 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 shrink-0 cursor-pointer";
-                }
-            });
+        /* ==================== TAB 3: CARDS GALLERY ==================== */
+        function selectCardGalleryNeighborhood(filterVal) {
+            currentCardGalleryFilter = (currentCardGalleryFilter === filterVal) ? null : filterVal;
+            renderCardsGallery();
+        }
+
+        function hideCardsGallery() {
+            currentCardGalleryFilter = null;
             renderCardsGallery();
         }
 
@@ -1379,46 +1555,82 @@
 
         function renderCardsGallery() {
             const grid = document.getElementById('cards-gallery-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
+            const wrapper = document.getElementById('cards-gallery-wrapper');
+            const hideBtn = document.getElementById('btn-hide-gallery');
+            const activeLabel = document.getElementById('gal-active-label');
+            if (!grid || !wrapper) return;
 
-            let list = territories;
-            if (currentCardGalleryFilter !== 'all') {
-                list = list.filter(t => t.neighborhood === currentCardGalleryFilter);
-            }
+            const countAllEl = document.getElementById('gal-count-all');
+            if (countAllEl) countAllEl.innerText = territories.length;
 
-            if (list.length === 0) {
-                grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-2xl text-center text-xs text-slate-400 border border-slate-200">Nenhum cartão encontrado neste filtro.</div>`;
+            ['Santa Efigênia', 'Paraíso', 'Alto Paraíso', 'Salão do Reino', 'all'].forEach(f => {
+                const key = f === 'all' ? 'all' : f.replace(/\s+/g, '');
+                const btn = document.getElementById(`gal-filter-${key}`);
+                const countBadge = document.getElementById(`gal-count-${key}`);
+
+                if (f !== 'all' && countBadge) {
+                    countBadge.innerText = territories.filter(t => t.neighborhood === f).length;
+                }
+
+                if (btn) {
+                    const isActive = currentCardGalleryFilter === f;
+                    btn.className = isActive
+                        ? `p-2.5 rounded-xl text-xs font-extrabold bg-jw-500 text-white border border-jw-600 text-left flex items-center justify-between shadow-sm transition cursor-pointer ${f === 'all' ? 'col-span-2 sm:col-span-2' : ''}`
+                        : `p-2.5 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 hover:border-jw-500 text-left flex items-center justify-between transition cursor-pointer ${f === 'all' ? 'col-span-2 sm:col-span-2' : ''}`;
+                }
+            });
+
+            if (!currentCardGalleryFilter) {
+                wrapper.classList.add('hidden');
+                if (hideBtn) hideBtn.classList.add('hidden');
             } else {
-                list.forEach(t => {
-                    const isSelected = selectedGalleryCards.includes(t.number);
-                    const safeNum = t.number.replace(/'/g, "\\'");
-                    const isPdf = t.fileType === 'pdf';
-                    const previewHtml = isPdf
-                        ? `<div class="w-full h-full bg-slate-800 flex flex-col items-center justify-center text-white p-2 text-center">
-                               <i data-lucide="file-text" class="w-9 h-9 text-red-400 mb-1"></i>
-                               <span class="text-[10px] font-bold line-clamp-1">${t.fileName || 'Arquivo PDF'}</span>
-                           </div>`
-                        : `<img src="${t.fileData || t.imgUrl || 'https://placehold.co/400x300/2c5282/ffffff?text=Cart%C3%A3o'}" alt="${t.number}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x300/2c5282/ffffff?text=Cart%C3%A3o';">`;
+                wrapper.classList.remove('hidden');
+                if (hideBtn) hideBtn.classList.remove('hidden');
+                if (activeLabel) {
+                    activeLabel.innerText = currentCardGalleryFilter === 'all'
+                        ? 'Todos os Locais'
+                        : `Cartões — ${currentCardGalleryFilter}`;
+                }
 
-                    grid.innerHTML += `
-                        <div onclick="toggleGalleryCardSelection('${safeNum}')" class="relative bg-white rounded-2xl overflow-hidden border-2 transition cursor-pointer shadow-sm ${isSelected ? 'border-emerald-500 ring-2 ring-emerald-400/40' : 'border-slate-200 hover:border-jw-500'}">
-                            <div class="h-32 bg-slate-900 relative overflow-hidden">
-                                ${previewHtml}
-                                <button type="button" onclick="event.stopPropagation(); selectedTerritoryNumber='${safeNum}'; openZoomModal();" class="absolute top-2 left-2 p-1.5 rounded-lg bg-slate-900/75 text-white hover:bg-slate-900 cursor-pointer" title="Ampliar">
-                                    <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i>
-                                </button>
-                                <div class="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center border ${isSelected ? 'bg-emerald-500 border-emerald-400 text-white' : 'bg-black/40 border-white/60 text-transparent'}">
-                                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                grid.innerHTML = '';
+                let list = territories;
+                if (currentCardGalleryFilter !== 'all') {
+                    list = list.filter(t => t.neighborhood === currentCardGalleryFilter);
+                }
+
+                if (list.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-slate-400">Nenhum cartão cadastrado neste local.</div>`;
+                } else {
+                    list.forEach(t => {
+                        const isSelected = selectedGalleryCards.includes(t.number);
+                        const safeNum = t.number.replace(/'/g, "\\'");
+                        const isPdf = t.fileType === 'pdf';
+                        const previewHtml = isPdf
+                            ? `<div class="w-full h-full bg-slate-800 flex flex-col items-center justify-center text-white p-1 text-center">
+                                   <i data-lucide="file-text" class="w-5 h-5 text-red-400"></i>
+                                   <span class="text-[7px] font-bold truncate w-full mt-0.5">PDF</span>
+                               </div>`
+                            : `<img src="${t.fileData || t.imgUrl || 'https://placehold.co/300x200/2c5282/ffffff?text=Cart%C3%A3o'}" alt="${t.number}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/300x200/2c5282/ffffff?text=Cart%C3%A3o';">`;
+
+                        grid.innerHTML += `
+                            <div onclick="toggleGalleryCardSelection('${safeNum}')" class="relative rounded-lg overflow-hidden border transition cursor-pointer flex flex-col justify-between active:scale-95 ${isSelected ? 'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-400/50' : 'bg-slate-50 border-slate-200 hover:border-jw-500'}">
+                                <div class="h-12 bg-slate-900 relative overflow-hidden">
+                                    ${previewHtml}
+                                    <button type="button" onclick="event.stopPropagation(); selectedTerritoryNumber='${safeNum}'; openZoomModal();" class="absolute top-1 left-1 p-0.5 rounded bg-slate-900/75 text-white hover:bg-slate-900 cursor-pointer" title="Ampliar">
+                                        <i data-lucide="zoom-in" class="w-2.5 h-2.5"></i>
+                                    </button>
+                                    <div class="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center border ${isSelected ? 'bg-emerald-500 border-emerald-400 text-white' : 'bg-black/45 border-white/60 text-transparent'}">
+                                        <i data-lucide="check" class="w-2.5 h-2.5"></i>
+                                    </div>
+                                </div>
+                                <div class="p-1.5">
+                                    <span class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter block truncate">${t.neighborhood}</span>
+                                    <span class="font-extrabold text-[10px] text-slate-800 block truncate leading-tight" title="${t.number}">${t.number}</span>
                                 </div>
                             </div>
-                            <div class="p-2.5">
-                                <span class="text-[10px] font-bold text-slate-400 block truncate">${t.neighborhood}</span>
-                                <span class="font-extrabold text-xs text-slate-800 block truncate">${t.number}</span>
-                            </div>
-                        </div>
-                    `;
-                });
+                        `;
+                    });
+                }
             }
 
             const floatingBar = document.getElementById('gallery-floating-bar');
@@ -1640,7 +1852,6 @@
                 const available = territories.filter(t => t.status !== 'concluido' && t.status !== 'designado').length;
                 const rate = total > 0 ? Math.round((concluded / total) * 100) : 0;
 
-                // Cabeçalho principal
                 doc.setFillColor(44, 82, 130);
                 doc.rect(0, 0, 210, 28, 'F');
                 doc.setTextColor(255, 255, 255);
@@ -1653,7 +1864,6 @@
 
                 let y = 38;
 
-                // Seção 1: Resumo Geral
                 doc.setTextColor(30, 41, 59);
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
@@ -1679,7 +1889,6 @@
                 doc.text(`Faltam ${total - concluded} território(s) para concluir 100% do ciclo atual.`, 20, y + 17);
                 y += 32;
 
-                // Seção 2: Desempenho por Bairro / Local
                 doc.setTextColor(30, 41, 59);
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
@@ -1702,7 +1911,6 @@
                     doc.setTextColor(100, 116, 139);
                     doc.text(`${nDone} de ${nTotal} concluídos (${nPct}%)  |  ${nField} em campo`, 75, y);
 
-                    // Barra visual no PDF
                     doc.setFillColor(226, 232, 240);
                     doc.roundedRect(14, y + 2, 182, 3, 1, 1, 'F');
                     if (nPct > 0) {
@@ -1714,7 +1922,6 @@
 
                 y += 4;
 
-                // Seção 3: Participação dos Dirigentes
                 doc.setTextColor(30, 41, 59);
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
@@ -1761,7 +1968,6 @@
 
                 y += 6;
 
-                // Seção 4: Últimas Movimentações
                 if (y > 250) { doc.addPage(); y = 20; }
                 doc.setTextColor(30, 41, 59);
                 doc.setFontSize(12);
@@ -1911,6 +2117,45 @@
             lucide.createIcons();
         }
 
+        function renderHistoryLog(t) {
+            const histList = document.getElementById('modal-t-history');
+            if (!histList) return;
+            histList.innerHTML = '';
+            if (!t.history || t.history.length === 0) {
+                histList.innerHTML = `<p class="text-slate-400 text-xs italic">Sem histórico de saídas registrado.</p>`;
+            } else {
+                t.history.forEach((h) => {
+                    const safeNum = t.number.replace(/'/g, "\\'");
+                    histList.innerHTML += `
+                        <div class="p-2 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center text-[11px]">
+                            <div>
+                                <span class="font-bold text-slate-800">${h.date ? h.date.split('-').reverse().join('/') : ''}</span> — <span class="font-semibold text-jw-500">${h.conductor}</span>
+                                <span class="block text-slate-500 text-[10px]">${h.action} • ${h.result} (por ${h.admin || 'Operador'})</span>
+                                ${h.event ? `<span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[10px]">⭐ ${h.event}</span>` : ''}
+                                ${h.notes ? `<p class="text-slate-400 italic text-[10px] mt-0.5">"${h.notes}"</p>` : ''}
+                            </div>
+                            <button type="button" onclick="deleteHistoryItem('${safeNum}', '${h.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg cursor-pointer" title="Excluir Registro">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+            lucide.createIcons();
+        }
+
+        function deleteHistoryItem(num, historyId) {
+            const t = territories.find(item => item.number === num);
+            if (!t) return;
+            askConfirmation("Excluir este registro do histórico?", () => {
+                t.history = t.history.filter(h => h.id !== historyId);
+                saveStorage();
+                renderHistoryLog(t);
+                showToast("Registro excluído.");
+                refreshAllViews();
+            });
+        }
+
         function openZoomModal() {
             const t = territories.find(item => item.number === selectedTerritoryNumber);
             if (!t) return;
@@ -1967,17 +2212,15 @@
             fileInput.onchange = function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        t.fileData = event.target.result;
-                        t.fileType = file.type.includes('pdf') ? 'pdf' : 'image';
-                        t.fileName = file.name;
+                    processUploadedFile(file, (dataUrl, type, name) => {
+                        t.fileData = dataUrl;
+                        t.fileType = type;
+                        t.fileName = name;
                         saveStorage();
                         openTerritoryModal(t.number);
-                        showToast("Arquivo atualizado com sucesso!");
+                        showToast("Arquivo atualizado e sincronizado!");
                         refreshAllViews();
-                    };
-                    reader.readAsDataURL(file);
+                    });
                 }
             };
             fileInput.click();
@@ -2060,7 +2303,6 @@
                 ? `${targetTerritories[0].number.replace(/\s+/g, '_')}.pdf`
                 : `Territorios_${conductor.replace(/\s+/g, '_')}.pdf`;
 
-            // Se houver pdf-lib disponível, mescla PDFs originais e cria páginas para imagens
             if (window.PDFLib && window.jspdf) {
                 const { PDFDocument } = window.PDFLib;
                 const { jsPDF } = window.jspdf;
@@ -2083,7 +2325,6 @@
                         }
                     }
 
-                    // Gera página PDF limpa com cabeçalho e imagem do cartão
                     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                     doc.setFillColor(44, 82, 130);
                     doc.rect(0, 0, 210, 26, 'F');
@@ -2274,18 +2515,15 @@
                 t.neighborhood = neighborhood;
 
                 if (fileInput.files && fileInput.files[0]) {
-                    const file = fileInput.files[0];
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        t.fileData = evt.target.result;
-                        t.fileType = file.type.includes('pdf') ? 'pdf' : 'image';
-                        t.fileName = file.name;
+                    processUploadedFile(fileInput.files[0], (dataUrl, type, name) => {
+                        t.fileData = dataUrl;
+                        t.fileType = type;
+                        t.fileName = name;
                         saveStorage();
                         closeModal('modal-edit-territory');
                         showToast("Território atualizado!");
                         refreshAllViews();
-                    };
-                    reader.readAsDataURL(file);
+                    });
                 } else {
                     saveStorage();
                     closeModal('modal-edit-territory');
@@ -2324,9 +2562,7 @@
             const defaultImg = 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=600&auto=format&fit=crop&q=60';
 
             if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                reader.onload = function(evt) {
+                processUploadedFile(fileInput.files[0], (dataUrl, type, name) => {
                     territories.push({
                         number: num,
                         neighborhood: neighborhood,
@@ -2335,17 +2571,16 @@
                         lastWorked: null,
                         lastConductor: 'Nenhum',
                         lastResult: 'Inédito',
-                        fileData: evt.target.result,
-                        fileType: file.type.includes('pdf') ? 'pdf' : 'image',
-                        fileName: file.name,
+                        fileData: dataUrl,
+                        fileType: type,
+                        fileName: name,
                         history: []
                     });
                     saveStorage();
                     closeModal('modal-new-territory');
                     refreshAllViews();
-                    showToast(`Cartão ${num} cadastrado!`);
-                };
-                reader.readAsDataURL(file);
+                    showToast(`Cartão ${num} cadastrado e sincronizado!`);
+                });
             } else {
                 territories.push({
                     number: num,
@@ -2489,7 +2724,7 @@
                         conductors = parsed.conductors;
                         saveStorage();
                         refreshAllViews();
-                        showToast("Backup importado com sucesso!");
+                        showToast("Backup importado e sincronizado!");
                     } else {
                         showToast("Formato JSON inválido.");
                     }
