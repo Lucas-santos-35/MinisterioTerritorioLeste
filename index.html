@@ -111,7 +111,7 @@
                         <h1 class="font-extrabold text-xs sm:text-sm leading-tight tracking-tight truncate">Território Leste</h1>
                         <button type="button" onclick="openCloudSyncModal()" class="flex items-center space-x-1.5 text-left cursor-pointer group py-0.5 mt-0.5" title="Configurar Sincronização Multi-Dispositivo">
                             <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
-                            <p id="sync-status-text" class="text-[10px] text-sky-200 group-hover:underline truncate max-w-[165px] sm:max-w-none">Conectando...</p>
+                            <p id="sync-status-text" class="text-[10px] text-sky-200 group-hover:underline truncate max-w-[165px] sm:max-w-none">Toque p/ conectar 2 celulares</p>
                         </button>
                     </div>
                 </div>
@@ -482,33 +482,133 @@
                 </div>
             </section>
 
+            <!-- TAB 7: MAPA GERAL (QUEBRA-CABEÇA) -->
+            <section id="view-puzzle" class="hidden space-y-3">
+                <div class="flex items-center justify-between bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <button type="button" onclick="goBackToDashboard()" class="flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-jw-500 hover:text-jw-700 bg-jw-50 px-3.5 py-2 rounded-xl border border-jw-100 active:scale-95 transition cursor-pointer">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Voltar</span>
+                    </button>
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-700 flex items-center space-x-1.5">
+                        <i data-lucide="puzzle" class="w-4 h-4 text-jw-500"></i>
+                        <span>Mapa Quebra-Cabeça</span>
+                    </span>
+                    <button type="button" onclick="triggerPuzzleMapUpload()" class="bg-jw-500 hover:bg-jw-600 text-white text-[11px] px-3 py-2 rounded-xl font-bold flex items-center space-x-1 shadow-sm active:scale-95 transition cursor-pointer" title="Anexar imagem/PDF do Mapa Geral de fundo">
+                        <i data-lucide="image-plus" class="w-3.5 h-3.5"></i>
+                        <span>Mapa Base</span>
+                    </button>
+                    <input type="file" id="puzzle-map-upload" accept="image/*,.pdf" class="hidden" onchange="handlePuzzleMapUpload(event)">
+                </div>
+
+                <!-- Progresso do Quebra-Cabeça -->
+                <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="font-extrabold text-slate-800 text-xs sm:text-sm">Montagem do Território — Congregação Leste</h2>
+                            <p class="text-[11px] text-slate-500">As peças encaixam e ganham cor conforme são concluídas.</p>
+                        </div>
+                        <div class="text-right">
+                            <span id="puzzle-percent" class="text-base sm:text-lg font-extrabold text-emerald-600 block leading-none">0%</span>
+                            <span id="puzzle-fraction" class="text-[10px] font-bold text-slate-400">0/73 peças</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                        <div id="puzzle-progress-bar" class="bg-gradient-to-r from-jw-500 via-sky-500 to-emerald-500 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Legenda dos Bairros e Estados -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-[10px] font-bold">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="inline-flex items-center space-x-1 text-emerald-800"><span class="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block"></span><span>Santa Efigênia (SE)</span></span>
+                            <span class="inline-flex items-center space-x-1 text-purple-800"><span class="w-2.5 h-2.5 rounded-xs bg-purple-500 inline-block"></span><span>Salão do Reino (SR)</span></span>
+                            <span class="inline-flex items-center space-x-1 text-sky-800"><span class="w-2.5 h-2.5 rounded-xs bg-sky-500 inline-block"></span><span>Paraíso (PS)</span></span>
+                            <span class="inline-flex items-center space-x-1 text-rose-800"><span class="w-2.5 h-2.5 rounded-xs bg-rose-500 inline-block"></span><span>Alto Paraíso (AP)</span></span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-slate-500">
+                            <span class="inline-flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-xs border border-dashed border-slate-400 bg-slate-100 inline-block"></span><span>Falta</span></span>
+                            <span class="inline-flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-xs border-2 border-amber-500 bg-amber-100 inline-block"></span><span>Em campo</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controles de Visualização -->
+                <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-sm text-[11px]">
+                    <div class="flex items-center space-x-1.5">
+                        <button type="button" onclick="setPuzzleFilter('all')" id="puz-btn-all" class="px-2.5 py-1 rounded-lg font-extrabold bg-jw-500 text-white cursor-pointer">Todos</button>
+                        <button type="button" onclick="setPuzzleFilter('concluido')" id="puz-btn-concluido" class="px-2.5 py-1 rounded-lg font-bold bg-slate-100 text-slate-600 cursor-pointer">Encaixados</button>
+                        <button type="button" onclick="setPuzzleFilter('pendente')" id="puz-btn-pendente" class="px-2.5 py-1 rounded-lg font-bold bg-slate-100 text-slate-600 cursor-pointer">Faltando</button>
+                    </div>
+                    <button type="button" onclick="syncPuzzleCardsWithSystem()" class="text-jw-600 hover:underline font-extrabold flex items-center space-x-1 cursor-pointer" title="Cria automaticamente os 73 cartões do mapa caso ainda não estejam cadastrados">
+                        <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
+                        <span>Criar 73 Cartões</span>
+                    </button>
+                </div>
+
+                <!-- Tabuleiro Interativo do Quebra-Cabeça (SVG Geográfico Proporcional ao MAPA-1.pdf) -->
+                <div class="bg-white p-2 sm:p-3 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                    <div id="puzzle-board-wrapper" class="relative w-full overflow-x-auto rounded-xl border border-slate-300 bg-slate-100">
+                        <div class="min-w-[560px] relative">
+                            <img id="puzzle-bg-image" src="" alt="" class="hidden w-full h-auto opacity-35 pointer-events-none select-none">
+                            <svg id="puzzle-svg-map" viewBox="0 0 1000 660" class="w-full h-auto block select-none">
+                                <defs>
+                                    <pattern id="unsolved-hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                                        <line x1="0" y1="0" x2="0" y2="8" stroke="#cbd5e1" stroke-width="2" />
+                                    </pattern>
+                                    <filter id="piece-shadow" x="-5%" y="-5%" width="110%" height="110%">
+                                        <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0f172a" flood-opacity="0.25"/>
+                                    </filter>
+                                </defs>
+                                <!-- Fundo cartográfico estilizado (Vias principais: Av. dos Andradas, Av. Brasil, Av. Mem de Sá) -->
+                                <rect x="0" y="0" width="1000" height="660" fill="#f8fafc" />
+                                <path d="M 10 245 Q 260 220 430 165 L 565 10" fill="none" stroke="#fed7aa" stroke-width="14" stroke-linecap="round" />
+                                <path d="M 20 315 L 220 350" fill="none" stroke="#bbf7d0" stroke-width="10" stroke-linecap="round" />
+                                <path d="M 455 180 L 535 550" fill="none" stroke="#e2e8f0" stroke-width="9" stroke-linecap="round" />
+                                <path d="M 635 30 L 680 430" fill="none" stroke="#bae6fd" stroke-width="9" stroke-linecap="round" />
+                                <text x="275" y="198" fill="#9a3412" font-size="9" font-weight="700" transform="rotate(-14 275 198)" opacity="0.7">Av. dos Andradas</text>
+                                <text x="95" y="324" fill="#166534" font-size="9" font-weight="700" transform="rotate(10 95 324)" opacity="0.7">Av. Brasil</text>
+                                <text x="488" y="390" fill="#475569" font-size="9" font-weight="700" transform="rotate(78 488 390)" opacity="0.7">Av. Mem de Sá</text>
+
+                                <!-- Camada onde as 73 peças do quebra-cabeça são renderizadas -->
+                                <g id="puzzle-pieces-layer"></g>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 text-center">Toque em qualquer território no mapa para abrir o cartão, designar dirigente ou marcar como concluído.</p>
+                </div>
+            </section>
+
         </main>
 
         <!-- BOTTOM NAVIGATION BAR -->
-        <nav class="fixed bottom-0 left-0 right-0 max-w-md sm:max-w-xl md:max-w-2xl mx-auto bg-white/95 backdrop-blur-md border-t border-slate-200 px-1.5 py-2 flex justify-around items-center z-40 shadow-lg">
-            <button type="button" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn flex flex-col items-center text-jw-500 font-bold transition p-1 min-w-[48px] cursor-pointer">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-0.5">Início</span>
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md sm:max-w-xl md:max-w-2xl mx-auto bg-white/95 backdrop-blur-md border-t border-slate-200 px-1 py-2 flex justify-around items-center z-40 shadow-lg">
+            <button type="button" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn flex flex-col items-center text-jw-500 font-bold transition p-1 min-w-[42px] cursor-pointer">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span class="text-[9px] sm:text-[10px] mt-0.5">Início</span>
             </button>
-            <button type="button" onclick="switchTab('territories')" id="nav-territories" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[48px] cursor-pointer">
-                <i data-lucide="map" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-0.5">Territórios</span>
+            <button type="button" onclick="switchTab('puzzle')" id="nav-puzzle" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[42px] cursor-pointer">
+                <i data-lucide="puzzle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span class="text-[9px] sm:text-[10px] mt-0.5">Mapa</span>
             </button>
-            <button type="button" onclick="switchTab('cards')" id="nav-cards" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[48px] cursor-pointer">
-                <i data-lucide="image" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-0.5">Cartões</span>
+            <button type="button" onclick="switchTab('territories')" id="nav-territories" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[42px] cursor-pointer">
+                <i data-lucide="map" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span class="text-[9px] sm:text-[10px] mt-0.5">Territórios</span>
             </button>
-            <button type="button" onclick="switchTab('conductors')" id="nav-conductors" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[48px] cursor-pointer">
-                <i data-lucide="users" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-0.5">Dirigentes</span>
+            <button type="button" onclick="switchTab('cards')" id="nav-cards" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[42px] cursor-pointer">
+                <i data-lucide="image" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span class="text-[9px] sm:text-[10px] mt-0.5">Cartões</span>
             </button>
-            <button type="button" onclick="switchTab('reports')" id="nav-reports" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[48px] cursor-pointer">
-                <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-0.5">Relatório</span>
+            <button type="button" onclick="switchTab('conductors')" id="nav-conductors" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[42px] cursor-pointer">
+                <i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span class="text-[9px] sm:text-[10px] mt-0.5">Dirigentes</span>
             </button>
-            <button type="button" onclick="switchTab('priority')" id="nav-priority" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[48px] cursor-pointer">
-                <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                <span class="text-[10px] mt-0.5">Urgência</span>
+            <button type="button" onclick="switchTab('reports')" id="nav-reports" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[42px] cursor-pointer">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span class="text-[9px] sm:text-[10px] mt-0.5">Relatório</span>
+            </button>
+            <button type="button" onclick="switchTab('priority')" id="nav-priority" class="nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[42px] cursor-pointer">
+                <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span class="text-[9px] sm:text-[10px] mt-0.5">Urgência</span>
             </button>
         </nav>
 
@@ -530,7 +630,7 @@
                     <span id="cloud-modal-status-msg" class="text-slate-600 font-medium block">Pronto para parear dois aparelhos.</span>
                 </div>
 
-                <!-- OPÇÃO 1: PAREAMENTO DIRETO RÁPIDO (SEM PRECISAR CRIAR CONTA) -->
+                <!-- OPÇÃO 1: PAREAMENTO DIRETO RÁPIDO -->
                 <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 space-y-2.5">
                     <span class="font-extrabold text-emerald-900 block text-xs">⚡ Conexão Direta Rápida (João Vitor ↔ Watila)</span>
                     <p class="text-[11px] text-emerald-800">Usem o <strong>mesmo Código da Congregação</strong> nos dois celulares. Tudo que um alterar aparece na hora no outro aparelho!</p>
@@ -548,7 +648,7 @@
                     </div>
                 </div>
 
-                <!-- OPÇÃO 2: FIREBASE OPCIONAL (NUVEM PERMANENTE 24H) -->
+                <!-- OPÇÃO 2: FIREBASE OPCIONAL -->
                 <details class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
                     <summary class="font-bold text-slate-700 cursor-pointer text-[11px]">Configuração Avançada: Nuvem Firebase (Opcional)</summary>
                     <form onsubmit="saveCustomFirebaseConfig(event)" class="space-y-2 mt-2.5">
@@ -1044,7 +1144,6 @@
                     `Ao Vivo • Sala: ${activeRoomCode}`,
                     `Conectado ao vivo na sala "${activeRoomCode}"! Alterações são sincronizadas automaticamente entre os aparelhos.`
                 );
-                // Envia o estado atual mais recente ao conectar
                 conn.send({
                     type: 'SYNC_STATE',
                     timestamp: lastSyncTimestamp,
@@ -1100,7 +1199,6 @@
 
             updateSyncBanner('connecting', `Conectando sala ${activeRoomCode}...`, `Iniciando conexão na sala "${activeRoomCode}"...`);
 
-            // Tenta assumir como host da sala; se o 1º celular já for host, conecta como 2º aparelho automaticamente
             const hostPeer = new Peer(hostId);
             peerInstance = hostPeer;
 
@@ -1119,7 +1217,6 @@
 
             hostPeer.on('error', (err) => {
                 if (err.type === 'unavailable-id') {
-                    // O outro aparelho já abriu a sala como Host -> conecta como Guest
                     try { hostPeer.destroy(); } catch (e) {}
                     const guestPeer = new Peer(guestId);
                     peerInstance = guestPeer;
@@ -1492,12 +1589,15 @@
         }
 
         function switchTab(id) {
-            ['dashboard', 'territories', 'cards', 'conductors', 'reports', 'priority'].forEach(v => {
-                document.getElementById(`view-${v}`).classList.add('hidden');
-                document.getElementById(`nav-${v}`).className = "nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[48px] cursor-pointer";
+            ['dashboard', 'puzzle', 'territories', 'cards', 'conductors', 'reports', 'priority'].forEach(v => {
+                const viewEl = document.getElementById(`view-${v}`);
+                const navEl = document.getElementById(`nav-${v}`);
+                if (viewEl) viewEl.classList.add('hidden');
+                if (navEl) navEl.className = "nav-btn flex flex-col items-center text-slate-400 font-medium transition p-1 min-w-[42px] cursor-pointer";
             });
             document.getElementById(`view-${id}`).classList.remove('hidden');
-            document.getElementById(`nav-${id}`).className = "nav-btn flex flex-col items-center text-jw-500 font-bold transition p-1 min-w-[48px] cursor-pointer";
+            document.getElementById(`nav-${id}`).className = "nav-btn flex flex-col items-center text-jw-500 font-bold transition p-1 min-w-[42px] cursor-pointer";
+            if (id === 'puzzle') renderPuzzleMap();
             if (id === 'cards') renderCardsGallery();
             if (id === 'reports') renderReportsView();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1513,6 +1613,7 @@
 
         function refreshAllViews() {
             renderDashboard();
+            renderPuzzleMap();
             renderTerritories();
             renderCardsGallery();
             renderConductorsSimpleList();
@@ -1521,6 +1622,293 @@
             lucide.createIcons();
         }
         window.refreshAllViews = refreshAllViews;
+
+        /* ==================== TAB 7: MAPA GERAL QUEBRA-CABEÇA ==================== */
+        let puzzleFilterMode = 'all';
+
+        // Mapeamento geográfico dos 73 territórios conforme MAPA-1.pdf (Congregação Leste)
+        const PUZZLE_TERRITORY_PIECES = [
+            // SANTA EFIGÊNIA (SE-1 a SE-17) - Esquerda (Verde)
+            { code: 'SE-1',  neighborhood: 'Santa Efigênia', x: 112, y: 215, w: 68, h: 48 },
+            { code: 'SE-2',  neighborhood: 'Santa Efigênia', x: 185, y: 215, w: 46, h: 48 },
+            { code: 'SE-6',  neighborhood: 'Santa Efigênia', x: 88,  y: 268, w: 74, h: 44 },
+            { code: 'SE-3',  neighborhood: 'Santa Efigênia', x: 332, y: 215, w: 54, h: 46 },
+            { code: 'SE-4',  neighborhood: 'Santa Efigênia', x: 392, y: 205, w: 42, h: 44 },
+            { code: 'SE-5',  neighborhood: 'Santa Efigênia', x: 440, y: 190, w: 44, h: 48 },
+            { code: 'SE-7',  neighborhood: 'Santa Efigênia', x: 238, y: 292, w: 64, h: 44 },
+            { code: 'SE-8',  neighborhood: 'Santa Efigênia', x: 308, y: 312, w: 44, h: 44 },
+            { code: 'SE-9',  neighborhood: 'Santa Efigênia', x: 356, y: 268, w: 46, h: 48 },
+            { code: 'SE-10', neighborhood: 'Santa Efigênia', x: 406, y: 268, w: 48, h: 58 },
+            { code: 'SE-11', neighborhood: 'Santa Efigênia', x: 406, y: 332, w: 52, h: 52 },
+            { code: 'SE-12', neighborhood: 'Santa Efigênia', x: 52,  y: 335, w: 66, h: 52 },
+            { code: 'SE-13', neighborhood: 'Santa Efigênia', x: 124, y: 335, w: 68, h: 52 },
+            { code: 'SE-14', neighborhood: 'Santa Efigênia', x: 102, y: 392, w: 72, h: 54 },
+            { code: 'SE-15', neighborhood: 'Santa Efigênia', x: 212, y: 344, w: 74, h: 64 },
+            { code: 'SE-16', neighborhood: 'Santa Efigênia', x: 292, y: 364, w: 48, h: 56 },
+            { code: 'SE-17', neighborhood: 'Santa Efigênia', x: 344, y: 364, w: 54, h: 56 },
+
+            // SALÃO DO REINO (SR-1 a SR-24) - Centro (Roxo)
+            { code: 'SR-1',  neighborhood: 'Salão do Reino', x: 542, y: 32,  w: 44, h: 38 },
+            { code: 'SR-2',  neighborhood: 'Salão do Reino', x: 590, y: 32,  w: 46, h: 38 },
+            { code: 'SR-3',  neighborhood: 'Salão do Reino', x: 518, y: 74,  w: 58, h: 38 },
+            { code: 'SR-4',  neighborhood: 'Salão do Reino', x: 580, y: 74,  w: 58, h: 38 },
+            { code: 'SR-5',  neighborhood: 'Salão do Reino', x: 492, y: 116, w: 46, h: 36 },
+            { code: 'SR-6',  neighborhood: 'Salão do Reino', x: 512, y: 156, w: 42, h: 34 },
+            { code: 'SR-7',  neighborhood: 'Salão do Reino', x: 558, y: 124, w: 42, h: 42 },
+            { code: 'SR-8',  neighborhood: 'Salão do Reino', x: 604, y: 124, w: 42, h: 42 },
+            { code: 'SR-9',  neighborhood: 'Salão do Reino', x: 552, y: 172, w: 46, h: 42 },
+            { code: 'SR-10', neighborhood: 'Salão do Reino', x: 552, y: 172, w: 46, h: 42 },
+            { code: 'SR-11', neighborhood: 'Salão do Reino', x: 602, y: 172, w: 48, h: 42 },
+            { code: 'SR-12', neighborhood: 'Salão do Reino', x: 488, y: 222, w: 44, h: 42 },
+            { code: 'SR-13', neighborhood: 'Salão do Reino', x: 536, y: 222, w: 54, h: 42 },
+            { code: 'SR-14', neighborhood: 'Salão do Reino', x: 594, y: 222, w: 58, h: 42 },
+            { code: 'SR-15', neighborhood: 'Salão do Reino', x: 472, y: 268, w: 46, h: 44 },
+            { code: 'SR-16', neighborhood: 'Salão do Reino', x: 522, y: 268, w: 66, h: 42 },
+            { code: 'SR-17', neighborhood: 'Salão do Reino', x: 592, y: 268, w: 62, h: 42 },
+            { code: 'SR-18', neighborhood: 'Salão do Reino', x: 472, y: 316, w: 52, h: 42 },
+            { code: 'SR-19', neighborhood: 'Salão do Reino', x: 528, y: 314, w: 60, h: 42 },
+            { code: 'SR-20', neighborhood: 'Salão do Reino', x: 592, y: 314, w: 64, h: 42 },
+            { code: 'SR-21', neighborhood: 'Salão do Reino', x: 468, y: 364, w: 44, h: 52 },
+            { code: 'SR-22', neighborhood: 'Salão do Reino', x: 516, y: 364, w: 44, h: 52 },
+            { code: 'SR-23', neighborhood: 'Salão do Reino', x: 564, y: 360, w: 46, h: 40 },
+            { code: 'SR-24', neighborhood: 'Salão do Reino', x: 614, y: 360, w: 46, h: 40 },
+
+            // PARAÍSO (PS-1 a PS-14) - Direita Superior/Média (Azul)
+            { code: 'PS-1',  neighborhood: 'Paraíso', x: 642, y: 28,  w: 58, h: 36 },
+            { code: 'PS-2',  neighborhood: 'Paraíso', x: 704, y: 24,  w: 62, h: 36 },
+            { code: 'PS-3',  neighborhood: 'Paraíso', x: 646, y: 68,  w: 36, h: 44 },
+            { code: 'PS-4',  neighborhood: 'Paraíso', x: 686, y: 68,  w: 36, h: 44 },
+            { code: 'PS-5',  neighborhood: 'Paraíso', x: 652, y: 116, w: 66, h: 38 },
+            { code: 'PS-6',  neighborhood: 'Paraíso', x: 654, y: 158, w: 58, h: 44 },
+            { code: 'PS-7',  neighborhood: 'Paraíso', x: 706, y: 185, w: 58, h: 44 },
+            { code: 'PS-8',  neighborhood: 'Paraíso', x: 660, y: 210, w: 68, h: 48 },
+            { code: 'PS-9',  neighborhood: 'Paraíso', x: 752, y: 224, w: 58, h: 46 },
+            { code: 'PS-10', neighborhood: 'Paraíso', x: 825, y: 205, w: 68, h: 56 },
+            { code: 'PS-11', neighborhood: 'Paraíso', x: 664, y: 264, w: 64, h: 46 },
+            { code: 'PS-12', neighborhood: 'Paraíso', x: 672, y: 315, w: 64, h: 48 },
+            { code: 'PS-13', neighborhood: 'Paraíso', x: 734, y: 274, w: 46, h: 52 },
+            { code: 'PS-14', neighborhood: 'Paraíso', x: 784, y: 274, w: 56, h: 52 },
+
+            // ALTO PARAÍSO (AP-1 a AP-18) - Sul/Inferior (Salmão/Coral)
+            { code: 'AP-1',  neighborhood: 'Alto Paraíso', x: 432, y: 416, w: 54, h: 38 },
+            { code: 'AP-2',  neighborhood: 'Alto Paraíso', x: 412, y: 458, w: 54, h: 38 },
+            { code: 'AP-3',  neighborhood: 'Alto Paraíso', x: 402, y: 500, w: 52, h: 42 },
+            { code: 'AP-4',  neighborhood: 'Alto Paraíso', x: 492, y: 458, w: 40, h: 42 },
+            { code: 'AP-5',  neighborhood: 'Alto Paraíso', x: 456, y: 546, w: 48, h: 54 },
+            { code: 'AP-6',  neighborhood: 'Alto Paraíso', x: 492, y: 504, w: 44, h: 42 },
+            { code: 'AP-7',  neighborhood: 'Alto Paraíso', x: 558, y: 410, w: 52, h: 44 },
+            { code: 'AP-8',  neighborhood: 'Alto Paraíso', x: 536, y: 464, w: 46, h: 46 },
+            { code: 'AP-9',  neighborhood: 'Alto Paraíso', x: 538, y: 554, w: 42, h: 54 },
+            { code: 'AP-10', neighborhood: 'Alto Paraíso', x: 614, y: 410, w: 58, h: 44 },
+            { code: 'AP-11', neighborhood: 'Alto Paraíso', x: 586, y: 460, w: 88, h: 46 },
+            { code: 'AP-12', neighborhood: 'Alto Paraíso', x: 562, y: 510, w: 88, h: 32 },
+            { code: 'AP-13', neighborhood: 'Alto Paraíso', x: 562, y: 546, w: 72, h: 28 },
+            { code: 'AP-14', neighborhood: 'Alto Paraíso', x: 562, y: 578, w: 72, h: 34 },
+            { code: 'AP-15', neighborhood: 'Alto Paraíso', x: 638, y: 546, w: 48, h: 34 },
+            { code: 'AP-16', neighborhood: 'Alto Paraíso', x: 682, y: 396, w: 52, h: 42 },
+            { code: 'AP-17', neighborhood: 'Alto Paraíso', x: 682, y: 442, w: 52, h: 42 },
+            { code: 'AP-18', neighborhood: 'Alto Paraíso', x: 738, y: 396, w: 52, h: 44 }
+        ];
+
+        // Ajuste fino para SR-9 e SR-10 não sobreporem
+        PUZZLE_TERRITORY_PIECES.forEach(p => {
+            if (p.code === 'SR-9')  { p.x = 502; p.y = 194; p.w = 46; p.h = 26; }
+            if (p.code === 'SR-10') { p.x = 552; p.y = 172; p.w = 46; p.h = 42; }
+        });
+
+        function findMatchingTerritory(code) {
+            const norm = code.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return territories.find(t => {
+                const tNorm = t.number.toLowerCase().replace(/[^a-z0-9]/g, '');
+                return tNorm === norm || tNorm.endsWith(norm) || t.number.toUpperCase().includes(code);
+            });
+        }
+
+        function setPuzzleFilter(mode) {
+            puzzleFilterMode = mode;
+            ['all', 'concluido', 'pendente'].forEach(m => {
+                const btn = document.getElementById(`puz-btn-${m}`);
+                if (btn) {
+                    btn.className = (m === mode)
+                        ? 'px-2.5 py-1 rounded-lg font-extrabold bg-jw-500 text-white cursor-pointer'
+                        : 'px-2.5 py-1 rounded-lg font-bold bg-slate-100 text-slate-600 cursor-pointer';
+                }
+            });
+            renderPuzzleMap();
+        }
+
+        function syncPuzzleCardsWithSystem() {
+            let added = 0;
+            PUZZLE_TERRITORY_PIECES.forEach(piece => {
+                if (!findMatchingTerritory(piece.code)) {
+                    territories.push({
+                        number: piece.code,
+                        neighborhood: piece.neighborhood,
+                        streets: '',
+                        status: 'disponivel',
+                        lastWorked: null,
+                        lastConductor: 'Nenhum',
+                        lastResult: 'Inédito',
+                        fileData: '',
+                        fileType: 'image',
+                        fileName: '',
+                        history: []
+                    });
+                    added++;
+                }
+            });
+            if (added > 0) {
+                saveStorage();
+                refreshAllViews();
+                showToast(`${added} territórios do mapa geral adicionados!`);
+            } else {
+                showToast("Todos os 73 territórios já estão no sistema!");
+            }
+        }
+
+        function triggerPuzzleMapUpload() {
+            document.getElementById('puzzle-map-upload').click();
+        }
+
+        function handlePuzzleMapUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.type.includes('pdf')) {
+                showToast("Para fundo do quebra-cabeça, envie uma captura de tela (imagem JPG/PNG) do mapa.");
+                return;
+            }
+            processUploadedFile(file, (dataUrl) => {
+                try {
+                    localStorage.setItem('jw_puzzle_bg_map', dataUrl);
+                    renderPuzzleMap();
+                    showToast("Mapa de fundo atualizado!");
+                } catch (err) {
+                    showToast("Imagem muito pesada para salvar no navegador.");
+                }
+            });
+        }
+
+        function handlePuzzlePieceClick(code, neighborhood) {
+            let match = findMatchingTerritory(code);
+            if (!match) {
+                match = {
+                    number: code,
+                    neighborhood: neighborhood,
+                    streets: '',
+                    status: 'disponivel',
+                    lastWorked: null,
+                    lastConductor: 'Nenhum',
+                    lastResult: 'Inédito',
+                    fileData: '',
+                    fileType: 'image',
+                    fileName: '',
+                    history: []
+                };
+                territories.push(match);
+                saveStorage();
+                refreshAllViews();
+                showToast(`Cartão ${code} criado automaticamente!`);
+            }
+            openTerritoryModal(match.number);
+        }
+
+        function renderPuzzleMap() {
+            const layer = document.getElementById('puzzle-pieces-layer');
+            if (!layer) return;
+
+            const savedBg = localStorage.getItem('jw_puzzle_bg_map');
+            const bgImg = document.getElementById('puzzle-bg-image');
+            if (bgImg) {
+                if (savedBg) {
+                    bgImg.src = savedBg;
+                    bgImg.classList.remove('hidden');
+                } else {
+                    bgImg.classList.add('hidden');
+                }
+            }
+
+            let concludedCount = 0;
+            const totalPieces = PUZZLE_TERRITORY_PIECES.length;
+            let svgContent = '';
+
+            const colorPalette = {
+                'Santa Efigênia': { fill: '#10b981', stroke: '#065f46', text: '#ffffff' },
+                'Salão do Reino': { fill: '#8b5cf6', stroke: '#4c1d95', text: '#ffffff' },
+                'Paraíso':        { fill: '#0ea5e9', stroke: '#075985', text: '#ffffff' },
+                'Alto Paraíso':   { fill: '#f43f5e', stroke: '#881337', text: '#ffffff' }
+            };
+
+            PUZZLE_TERRITORY_PIECES.forEach(p => {
+                const match = findMatchingTerritory(p.code);
+                const status = match ? match.status : 'disponivel';
+                const isConcluded = status === 'concluido';
+                const isAssigned = status === 'designado';
+
+                if (isConcluded) concludedCount++;
+
+                const dimPiece = (puzzleFilterMode === 'concluido' && !isConcluded) ||
+                                 (puzzleFilterMode === 'pendente' && isConcluded);
+
+                const pal = colorPalette[p.neighborhood] || { fill: '#2c5282', stroke: '#1a365d', text: '#ffffff' };
+
+                // Forma estilo peça de quebra-cabeça com encaixes laterais/superiores
+                const cx = p.x + p.w / 2;
+                const cy = p.y + p.h / 2;
+                const tab = 4;
+                const pathD = `
+                    M ${p.x} ${p.y}
+                    L ${cx - tab} ${p.y}
+                    C ${cx - tab} ${p.y - tab}, ${cx + tab} ${p.y - tab}, ${cx + tab} ${p.y}
+                    L ${p.x + p.w} ${p.y}
+                    L ${p.x + p.w} ${cy - tab}
+                    C ${p.x + p.w + tab} ${cy - tab}, ${p.x + p.w + tab} ${cy + tab}, ${p.x + p.w} ${cy + tab}
+                    L ${p.x + p.w} ${p.y + p.h}
+                    L ${p.x} ${p.y + p.h}
+                    Z
+                `;
+
+                let fillStyle = 'url(#unsolved-hatch)';
+                let strokeStyle = '#94a3b8';
+                let strokeWidth = '1.2';
+                let dashArray = '3,2';
+                let labelColor = '#475569';
+                let filterAttr = '';
+
+                if (isConcluded) {
+                    fillStyle = pal.fill;
+                    strokeStyle = pal.stroke;
+                    strokeWidth = '1.8';
+                    dashArray = 'none';
+                    labelColor = pal.text;
+                    filterAttr = 'filter="url(#piece-shadow)"';
+                } else if (isAssigned) {
+                    fillStyle = '#fef3c7';
+                    strokeStyle = '#d97706';
+                    strokeWidth = '1.8';
+                    dashArray = 'none';
+                    labelColor = '#92400e';
+                }
+
+                svgContent += `
+                    <g onclick="handlePuzzlePieceClick('${p.code}', '${p.neighborhood}')" style="cursor:pointer; opacity:${dimPiece ? '0.2' : '1'}; transition: opacity 0.2s;">
+                        <path d="${pathD}" fill="${fillStyle}" stroke="${strokeStyle}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                        <text x="${cx}" y="${cy + 3}" text-anchor="middle" font-size="9" font-weight="800" fill="${labelColor}">${p.code}</text>
+                        ${isConcluded ? `<text x="${p.x + p.w - 6}" y="${p.y + 10}" text-anchor="middle" font-size="8" font-weight="900" fill="#ffffff">✓</text>` : ''}
+                    </g>
+                `;
+            });
+
+            layer.innerHTML = svgContent;
+
+            const pct = Math.round((concludedCount / totalPieces) * 100);
+            const pctEl = document.getElementById('puzzle-percent');
+            const fracEl = document.getElementById('puzzle-fraction');
+            const barEl = document.getElementById('puzzle-progress-bar');
+
+            if (pctEl) pctEl.innerText = `${pct}%`;
+            if (fracEl) fracEl.innerText = `${concludedCount}/${totalPieces} peças`;
+            if (barEl) barEl.style.width = `${pct}%`;
+        }
 
         /* ==================== TAB 1: DASHBOARD ==================== */
         function renderDashboard() {
